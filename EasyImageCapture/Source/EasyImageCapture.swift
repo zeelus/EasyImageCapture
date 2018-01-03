@@ -82,13 +82,13 @@ public class EasyImageCapture: NSObject {
         return devices.first
     }
     
-    func resume() {
+    public func resume() {
         self.cameraQueue.sync {
             self.captureSession.startRunning()
         }
     }
     
-    func stop() {
+    public func stop() {
         self.cameraQueue.sync {
             self.captureSession.stopRunning()
         }
