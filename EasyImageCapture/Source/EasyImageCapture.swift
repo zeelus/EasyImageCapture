@@ -29,33 +29,34 @@ public class EasyImageCapture: NSObject {
             self.captureSession.startRunning()
         }
         
-        NotificationCenter.default.addObserver(self, selector: #selector(orientationChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        //NotificationCenter.default.addObserver(self, selector: #selector(orientationChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        //NotificationCenter.default.removeObserver(self)
     }
     
     private func checkPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             self.isPermission = true
+            self.delegate?.capture(isPermission: true)
         case .notDetermined:
-//            AVCaptureDevice.requestAccess(for: .video, completionHandler: {[weak self] (permission) in
-//                self?.isPermission = permission
-//            })
-            self.askForPermission()
+            break
+            //self.askForPermission()
+            self.delegate?.capture(isPermission: false)
         default:
             self.isPermission = false
             self.delegate?.caputre(error: EasyImageCaptureError.accessDenied)
         }
     }
     
-    private func askForPermission() {
-        self.cameraQueue.suspend()
+    public func askForPermission() {
+        //self.cameraQueue.suspend()
         AVCaptureDevice.requestAccess(for: .video) {[weak self] (isPermission) in
             self?.isPermission = isPermission
-            self?.cameraQueue.resume()
+            //self?.cameraQueue.resume()
         }
     }
     
@@ -64,6 +65,14 @@ public class EasyImageCapture: NSObject {
         self.captureSession.sessionPreset = .medium
         
         guard let captureDevice = self.selectCaptureDevice() else { return }
+        
+        do {
+            try captureDevice.lockForConfiguration()
+            captureDevice.autoFocusRangeRestriction = .near
+        } catch {
+            print("Capture device lock error")
+        }
+        
         guard let captureDeviceInput = try? AVCaptureDeviceInput(device: captureDevice) else { return }
         self.captureSession.addInput(captureDeviceInput)
         
@@ -95,7 +104,6 @@ public class EasyImageCapture: NSObject {
     }
     
     @objc func orientationChange() {
-        print("Chane orientation")
         let connection = self.captureSession.outputs.first?.connection(with: .video)
         let deviceOrientation = UIDevice.current.orientation
         connection?.videoOrientation = deviceOrientation.getAVOrietation
