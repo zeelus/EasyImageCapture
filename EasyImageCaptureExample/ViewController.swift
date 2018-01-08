@@ -11,7 +11,7 @@ import AVFoundation
 
 class ViewController: UIViewController {
     
-    let imageCapture = EasyImageCapture()
+    let imageCapture = EasyImageCapture(options: ["autoFocusRangeRestriction": AVCaptureDevice.AutoFocusRangeRestriction.near])
     @IBOutlet weak var imageView: UIImageView!
     
     override var preferredStatusBarStyle: UIStatusBarStyle {

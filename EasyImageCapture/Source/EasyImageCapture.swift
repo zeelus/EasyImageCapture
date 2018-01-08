@@ -14,6 +14,7 @@ public class EasyImageCapture: NSObject {
     
     private let cameraQueue = DispatchQueue(label: "cameraQueue")
     private let captureSession = AVCaptureSession()
+    private let options: [String: Any]?
     
     private var _delegate: EasyImageCaptureDelegate? = nil
     public var delegate: EasyImageCaptureDelegate? {
@@ -39,10 +40,10 @@ public class EasyImageCapture: NSObject {
     private var isPermission = false
     private var isSetup = false
     
-    override public init() {
+    public init(options: [String: Any]? = nil) {
+        self.options = options
         super.init()
         self.stop()
-        
     }
     
     private func checkPermission() {
@@ -78,10 +79,16 @@ public class EasyImageCapture: NSObject {
         
         guard let captureDevice = self.selectCaptureDevice() else { return }
         
-        do {
-            try captureDevice.lockForConfiguration()
-        } catch {
-            print("Capture device lock error")
+        if let options = self.options {
+            
+            do {
+                try captureDevice.lockForConfiguration()
+                captureDevice.setOptions(options: options)
+                captureDevice.unlockForConfiguration()
+            } catch {
+                print("Capture device lock error")
+            }
+            
         }
         
         guard let captureDeviceInput = try? AVCaptureDeviceInput(device: captureDevice) else { return }
@@ -152,3 +159,21 @@ fileprivate extension UIDeviceOrientation {
     }
 }
 
+fileprivate extension AVCaptureDevice {
+    
+    func setOptions(options: [String: Any]) {
+        
+        if let focusModeOption = options["focusMode"] as? AVCaptureDevice.FocusMode {
+            self.focusMode = focusModeOption
+        }
+        
+        if let focusPointOfInterestOption = options["focusPointOfInterest"] as? CGPoint {
+            self.focusPointOfInterest = focusPointOfInterestOption
+        }
+        
+        if let autoFocusRangeRestrictionOption = options["autoFocusRangeRestriction"] as? AVCaptureDevice.AutoFocusRangeRestriction {
+            self.autoFocusRangeRestriction = autoFocusRangeRestrictionOption
+        }
+        
+    }
+}
