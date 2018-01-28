@@ -32,6 +32,11 @@ class ViewController: UIViewController {
 
 extension ViewController: EasyImageCaptureDelegate {
     
+    var preferredCameraInput: EasyImageInputCameraType {
+        return .buidtDual
+    }
+    
+    
     func capture(_ imageCapture: EasyImageCapture, isPermission: Bool) {
         if !isPermission {
             imageCapture.askForPermission()

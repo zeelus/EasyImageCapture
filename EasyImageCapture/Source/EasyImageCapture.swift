@@ -107,14 +107,23 @@ public class EasyImageCapture: NSObject {
     
     private func selectCaptureDevice() -> AVCaptureDevice? {
         
+        guard let prefer = self._delegate?.preferredCameraInput else { return nil }
+
         var types: [AVCaptureDevice.DeviceType] = [.builtInTelephotoCamera, .builtInWideAngleCamera]
         
         if #available(iOS 10.2, *) {
             types.append(.builtInDualCamera)
         }
         
+        if prefer == .front {
+            let devices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(deviceTypes: types, mediaType: .video, position: .front).devices
+            return devices.first
+        }
+        
         let devices: [AVCaptureDevice] = AVCaptureDevice.DiscoverySession.init(deviceTypes: types, mediaType: .video, position: .back).devices
-        return devices.first
+        
+        
+        return devices.filter { $0.deviceType == prefer.getAVDevice() }.first
     }
     
     public func resume() {
@@ -172,7 +181,9 @@ fileprivate extension AVCaptureDevice {
         }
         
         if let autoFocusRangeRestrictionOption = options["autoFocusRangeRestriction"] as? AVCaptureDevice.AutoFocusRangeRestriction {
-            self.autoFocusRangeRestriction = autoFocusRangeRestrictionOption
+            if self.isAutoFocusRangeRestrictionSupported {
+                self.autoFocusRangeRestriction = autoFocusRangeRestrictionOption
+            }
         }
         
     }
